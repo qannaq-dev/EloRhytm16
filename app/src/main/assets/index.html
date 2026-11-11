@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="theme-color" content="#0b1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EloRhytm16">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -418,6 +426,8 @@ document.getElementById("demo").onclick=()=>{
 let ctx=null,out=null,noise=null;
 function ensureAudio(){
   if(ctx){if(ctx.state==="suspended")ctx.resume();return}
+  // iPhone: play through the silent switch (Safari 17+)
+  try{if(navigator.audioSession)navigator.audioSession.type="playback"}catch(e){}
   ctx=new (window.AudioContext||window.webkitAudioContext)();
   const comp=ctx.createDynamicsCompressor();comp.threshold.value=-10;comp.ratio.value=4;
   out=ctx.createGain();out.gain.value=state.master/100;out.connect(comp);comp.connect(ctx.destination);
@@ -529,6 +539,8 @@ document.addEventListener("keydown",e=>{if(e.code==="Space"&&!["INPUT","BUTTON"]
 
 /* Android app hook: stop playback when the app goes to the background */
 window.appPause=()=>{if(playing)playBtn.click()};
+/* Web version: offline support (skipped inside the Android app, which loads from file://) */
+if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 </script>
 </body>
 </html>

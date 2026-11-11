@@ -2,6 +2,11 @@ plugins {
     id("com.android.application")
 }
 
+// The signing key lives in GitHub secrets (KEYSTORE_B64 / KEYSTORE_PASSWORD), never in the repo.
+// The build workflow decodes it to app/release.keystore before building.
+val ksFile = file("release.keystore")
+val ksPassword: String? = System.getenv("KEYSTORE_PASSWORD")
+
 android {
     namespace = "com.elorhytm16"
     compileSdk = 34
@@ -10,24 +15,24 @@ android {
         applicationId = "com.elorhytm16"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
-    // One fixed key, so new builds install over old ones and keep your saved banks.
     signingConfigs {
-        create("fixed") {
-            storeFile = file("elorhytm16.keystore")
-            storePassword = "elorhytm16"
-            keyAlias = "elorhytm16"
-            keyPassword = "elorhytm16"
+        if (ksFile.exists() && ksPassword != null) {
+            create("release") {
+                storeFile = ksFile
+                storePassword = ksPassword
+                keyAlias = "elorhytm16"
+                keyPassword = ksPassword
+            }
         }
     }
     buildTypes {
-        getByName("debug") { signingConfig = signingConfigs.getByName("fixed") }
         getByName("release") {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("fixed")
+            signingConfig = signingConfigs.findByName("release")
         }
     }
     compileOptions {
